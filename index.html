@@ -1,0 +1,1584 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Biblioteca Digital — Engenharia de Software</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --azul-escuro: #1b2a4a;
+        --azul-medio: #2c5f8a;
+        --azul-claro: #3a86c8;
+        --azul-light: #e8f0fe;
+        --branco: #ffffff;
+        --cinza-bg: #f0f4f8;
+        --cinza-texto: #4a4a4a;
+        --amarelo: #ffc107;
+        --verde: #28a745;
+        --vermelho: #dc3545;
+        --laranja: #fd7e14;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Inter", sans-serif;
+        background: #000;
+      }
+
+      /* ─── SLIDE ENGINE ─── */
+      .slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+        transform: translateX(60px);
+        overflow: hidden;
+      }
+      .slide.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0);
+        z-index: 10;
+      }
+      .slide.prev {
+        opacity: 0;
+        transform: translateX(-60px);
+      }
+
+      /* ─── ANIMAÇÕES ─── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes fadeLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes fadeRight {
+        from {
+          opacity: 0;
+          transform: translateX(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.7);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+      @keyframes typing {
+        from {
+          width: 0;
+        }
+        to {
+          width: 100%;
+        }
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      .slide.active .anim-fadeup {
+        animation: fadeUp 0.7s ease forwards;
+      }
+      .slide.active .anim-fadein {
+        animation: fadeIn 0.7s ease forwards;
+      }
+      .slide.active .anim-fadeleft {
+        animation: fadeLeft 0.7s ease forwards;
+      }
+      .slide.active .anim-faderight {
+        animation: fadeRight 0.7s ease forwards;
+      }
+      .slide.active .anim-scalein {
+        animation: scaleIn 0.6s ease forwards;
+      }
+      .slide.active .anim-slidedown {
+        animation: slideDown 0.6s ease forwards;
+      }
+
+      .anim-fadeup,
+      .anim-fadein,
+      .anim-fadeleft,
+      .anim-faderight,
+      .anim-scalein,
+      .anim-slidedown {
+        opacity: 0;
+      }
+
+      .d1 {
+        animation-delay: 0.1s !important;
+      }
+      .d2 {
+        animation-delay: 0.25s !important;
+      }
+      .d3 {
+        animation-delay: 0.4s !important;
+      }
+      .d4 {
+        animation-delay: 0.55s !important;
+      }
+      .d5 {
+        animation-delay: 0.7s !important;
+      }
+      .d6 {
+        animation-delay: 0.85s !important;
+      }
+      .d7 {
+        animation-delay: 1s !important;
+      }
+      .d8 {
+        animation-delay: 1.15s !important;
+      }
+
+      /* ─── HEADER BAR (slides internos) ─── */
+      .slide-header {
+        background: var(--azul-escuro);
+        padding: 28px 50px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-height: 90px;
+        position: relative;
+      }
+      .slide-header::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--amarelo), var(--azul-claro));
+      }
+      .slide-header .icon {
+        font-size: 32px;
+      }
+      .slide-header h2 {
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--branco);
+        letter-spacing: -0.5px;
+      }
+      .slide-body {
+        flex: 1;
+        background: var(--cinza-bg);
+        padding: 36px 50px;
+        overflow-y: auto;
+      }
+
+      /* ─── CAPA (Slide 1) ─── */
+      .slide-capa {
+        background: linear-gradient(
+          135deg,
+          #0f1a2e 0%,
+          #1b2a4a 40%,
+          #2c5f8a 100%
+        );
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+      }
+      .slide-capa::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: var(--amarelo);
+      }
+      .slide-capa::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: var(--azul-claro);
+      }
+      .capa-icon {
+        font-size: 80px;
+        animation: float 3s ease-in-out infinite;
+        margin-bottom: 10px;
+      }
+      .capa-title {
+        font-size: 52px;
+        font-weight: 800;
+        color: var(--branco);
+        letter-spacing: -1px;
+        margin-bottom: 8px;
+      }
+      .capa-subtitle {
+        font-size: 22px;
+        color: var(--azul-claro);
+        font-weight: 400;
+        margin-bottom: 30px;
+      }
+      .capa-divider {
+        width: 200px;
+        height: 3px;
+        background: var(--amarelo);
+        margin: 0 auto 24px;
+        border-radius: 2px;
+      }
+      .capa-info {
+        font-size: 15px;
+        color: #aabbdd;
+        line-height: 1.8;
+      }
+      .capa-info span {
+        color: #8899bb;
+      }
+
+      /* ─── AGENDA (Slide 2) ─── */
+      .agenda-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .agenda-item {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        background: var(--branco);
+        border-radius: 12px;
+        padding: 16px 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        cursor: default;
+      }
+      .agenda-item:hover {
+        transform: translateX(8px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      }
+      .agenda-num {
+        width: 44px;
+        height: 44px;
+        background: var(--azul-medio);
+        color: var(--branco);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .agenda-text h3 {
+        font-size: 17px;
+        color: var(--azul-escuro);
+        font-weight: 600;
+      }
+      .agenda-text p {
+        font-size: 13px;
+        color: #888;
+        margin-top: 2px;
+      }
+
+      /* ─── CARDS GENÉRICOS ─── */
+      .cards-grid {
+        display: grid;
+        gap: 20px;
+      }
+      .cards-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+      .cards-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+      .cards-4 {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+      }
+
+      .card {
+        background: var(--branco);
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+      }
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      }
+      .card-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+      }
+      .card h3 {
+        font-size: 18px;
+        color: var(--azul-medio);
+        margin-bottom: 8px;
+        font-weight: 700;
+      }
+      .card p {
+        font-size: 13.5px;
+        color: var(--cinza-texto);
+        line-height: 1.6;
+      }
+
+      /* ─── OBJETIVO ─── */
+      .objetivo-box {
+        background: var(--branco);
+        border-radius: 14px;
+        padding: 30px 36px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        margin-bottom: 28px;
+        font-size: 16px;
+        color: var(--cinza-texto);
+        line-height: 1.8;
+        border-left: 5px solid var(--azul-claro);
+      }
+      .beneficios-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+      }
+      .beneficio-card {
+        background: var(--branco);
+        border-radius: 14px;
+        padding: 24px 16px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        transition: transform 0.3s;
+      }
+      .beneficio-card:hover {
+        transform: translateY(-6px) scale(1.02);
+      }
+      .beneficio-card .icon {
+        font-size: 38px;
+        margin-bottom: 10px;
+      }
+      .beneficio-card h4 {
+        font-size: 15px;
+        color: var(--azul-medio);
+        margin-bottom: 6px;
+        font-weight: 700;
+      }
+      .beneficio-card p {
+        font-size: 12.5px;
+        color: #777;
+        line-height: 1.5;
+      }
+
+      /* ─── USUÁRIOS ─── */
+      .usuario-card {
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        padding-top: 30px;
+      }
+      .usuario-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+      }
+      .usuario-card.cor1::before {
+        background: var(--azul-claro);
+      }
+      .usuario-card.cor2::before {
+        background: var(--azul-medio);
+      }
+      .usuario-card.cor3::before {
+        background: var(--azul-escuro);
+      }
+      .usuario-card.cor4::before {
+        background: #5b21b6;
+      }
+
+      .usuario-card .icon {
+        font-size: 50px;
+        margin-bottom: 14px;
+      }
+      .usuario-card h3 {
+        margin-bottom: 12px;
+      }
+      .usuario-card.cor1 h3 {
+        color: var(--azul-claro);
+      }
+      .usuario-card.cor2 h3 {
+        color: var(--azul-medio);
+      }
+      .usuario-card.cor3 h3 {
+        color: var(--azul-escuro);
+      }
+      .usuario-card.cor4 h3 {
+        color: #5b21b6;
+      }
+
+      /* ─── FUNCIONALIDADES ─── */
+      .func-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 18px;
+        background: var(--branco);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s;
+      }
+      .func-item:hover {
+        transform: translateX(6px);
+      }
+      .func-num {
+        width: 40px;
+        height: 40px;
+        background: var(--azul-medio);
+        color: var(--branco);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .func-content h3 {
+        font-size: 16px;
+        color: var(--azul-escuro);
+        margin-bottom: 4px;
+        font-weight: 700;
+      }
+      .func-content p {
+        font-size: 13px;
+        color: var(--cinza-texto);
+        line-height: 1.6;
+      }
+
+      .func-resumo {
+        background: var(--azul-escuro);
+        border-radius: 12px;
+        padding: 18px 28px;
+        color: var(--branco);
+        font-size: 15px;
+        font-weight: 600;
+        margin-top: 16px;
+      }
+
+      /* ─── RISCOS ─── */
+      .risco-item {
+        display: flex;
+        align-items: stretch;
+        background: var(--branco);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s;
+      }
+      .risco-item:hover {
+        transform: translateX(6px);
+      }
+      .risco-bar {
+        width: 6px;
+        flex-shrink: 0;
+      }
+      .risco-bar.alto {
+        background: var(--vermelho);
+      }
+      .risco-bar.alto2 {
+        background: var(--laranja);
+      }
+      .risco-bar.medio {
+        background: var(--amarelo);
+      }
+      .risco-bar.baixo {
+        background: var(--verde);
+      }
+      .risco-body {
+        padding: 14px 20px;
+        display: flex;
+        gap: 24px;
+        flex: 1;
+        align-items: center;
+      }
+      .risco-meta {
+        min-width: 200px;
+      }
+      .risco-nivel {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+      }
+      .risco-nivel.c-alto {
+        color: var(--vermelho);
+      }
+      .risco-nivel.c-alto2 {
+        color: var(--laranja);
+      }
+      .risco-nivel.c-medio {
+        color: #c5a000;
+      }
+      .risco-nivel.c-baixo {
+        color: var(--verde);
+      }
+      .risco-titulo {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--azul-escuro);
+      }
+      .risco-desc {
+        font-size: 12.5px;
+        color: var(--cinza-texto);
+        line-height: 1.6;
+      }
+
+      /* ─── ETAPAS ─── */
+      .etapas-sub {
+        font-size: 15px;
+        color: var(--azul-medio);
+        font-weight: 600;
+        margin-bottom: 24px;
+      }
+      .etapas-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .etapa-card {
+        text-align: center;
+        position: relative;
+      }
+      .etapa-circle {
+        width: 44px;
+        height: 44px;
+        background: var(--azul-medio);
+        color: var(--branco);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+        margin: 0 auto 8px;
+      }
+      .etapa-line {
+        position: absolute;
+        top: 22px;
+        left: 70%;
+        width: 60%;
+        height: 3px;
+        background: var(--azul-claro);
+        opacity: 0.5;
+      }
+      .etapa-card:last-child .etapa-line {
+        display: none;
+      }
+      .etapa-body {
+        background: var(--branco);
+        border-radius: 10px;
+        padding: 14px 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .etapa-body h4 {
+        font-size: 12.5px;
+        color: var(--azul-escuro);
+        font-weight: 700;
+        margin-bottom: 8px;
+        line-height: 1.3;
+      }
+      .etapa-body p {
+        font-size: 11px;
+        color: #888;
+        line-height: 1.5;
+        flex: 1;
+      }
+      .etapa-tempo {
+        background: var(--azul-escuro);
+        color: var(--branco);
+        border-radius: 20px;
+        padding: 4px 10px;
+        font-size: 10.5px;
+        font-weight: 700;
+        display: inline-block;
+        margin-top: 8px;
+      }
+      .etapas-total {
+        background: var(--azul-escuro);
+        border-radius: 12px;
+        padding: 16px 28px;
+        color: var(--branco);
+        font-size: 15px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      /* ─── PROBLEMAS ─── */
+      .problemas-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .problema-card {
+        background: var(--branco);
+        border-radius: 14px;
+        padding: 20px 22px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        display: flex;
+        gap: 14px;
+        transition: transform 0.3s;
+      }
+      .problema-card:hover {
+        transform: translateY(-3px);
+      }
+      .problema-icon {
+        font-size: 30px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .problema-card h3 {
+        font-size: 14.5px;
+        color: var(--azul-escuro);
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .problema-card p {
+        font-size: 12.5px;
+        color: var(--cinza-texto);
+        line-height: 1.6;
+      }
+
+      /* ─── CONCLUSÃO ─── */
+      .slide-conclusao {
+        background: linear-gradient(
+          135deg,
+          #0f1a2e 0%,
+          #1b2a4a 40%,
+          #2c5f8a 100%
+        );
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+      .conclusao-text {
+        font-size: 18px;
+        color: #ccddee;
+        max-width: 750px;
+        line-height: 1.8;
+        margin: 0 auto 36px;
+      }
+      .destaques {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 36px;
+      }
+      .destaque-pill {
+        background: var(--azul-medio);
+        color: var(--branco);
+        border-radius: 30px;
+        padding: 10px 32px;
+        font-size: 15px;
+        font-weight: 600;
+        transition: transform 0.2s;
+      }
+      .destaque-pill:hover {
+        transform: scale(1.05);
+      }
+      .conclusao-quote {
+        font-size: 16px;
+        color: var(--amarelo);
+        font-style: italic;
+        margin-top: 10px;
+      }
+
+      /* ─── OBRIGADO ─── */
+      .slide-obrigado {
+        background: linear-gradient(
+          135deg,
+          #0f1a2e 0%,
+          #1b2a4a 40%,
+          #2c5f8a 100%
+        );
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+      }
+      .slide-obrigado::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: var(--amarelo);
+      }
+      .obrigado-title {
+        font-size: 60px;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 16px;
+      }
+      .obrigado-sub {
+        font-size: 22px;
+        color: var(--azul-claro);
+        margin-bottom: 30px;
+      }
+      .obrigado-divider {
+        width: 150px;
+        height: 3px;
+        background: var(--amarelo);
+        margin: 0 auto 24px;
+      }
+      .obrigado-question {
+        font-size: 18px;
+        color: #aabbdd;
+        margin-bottom: 20px;
+      }
+      .obrigado-footer {
+        font-size: 13px;
+        color: #667799;
+      }
+
+      /* ─── NAVEGAÇÃO ─── */
+      .nav-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(27, 42, 74, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 10px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+      }
+      .nav-bar button {
+        background: var(--azul-medio);
+        color: var(--branco);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 22px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: "Inter", sans-serif;
+        transition:
+          background 0.2s,
+          transform 0.1s;
+      }
+      .nav-bar button:hover {
+        background: var(--azul-claro);
+      }
+      .nav-bar button:active {
+        transform: scale(0.96);
+      }
+      .nav-bar button:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+      .nav-counter {
+        color: #aabbdd;
+        font-size: 14px;
+        font-weight: 600;
+        min-width: 80px;
+        text-align: center;
+      }
+      .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        background: var(--amarelo);
+        z-index: 101;
+        transition: width 0.4s ease;
+      }
+
+      /* ─── DOTS ─── */
+      .nav-dots {
+        display: flex;
+        gap: 6px;
+      }
+      .nav-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #556;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: none;
+      }
+      .nav-dot.active {
+        background: var(--amarelo);
+        width: 24px;
+        border-radius: 4px;
+      }
+
+      /* ─── RESPONSIVO ─── */
+      @media (max-width: 900px) {
+        .cards-4,
+        .beneficios-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .etapas-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+        .capa-title {
+          font-size: 36px;
+        }
+        .slide-header h2 {
+          font-size: 24px;
+        }
+        .slide-body {
+          padding: 20px 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- PROGRESS BAR -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- ════════════ SLIDE 1 — CAPA ════════════ -->
+    <div class="slide slide-capa active" data-slide="0">
+      <div class="capa-icon anim-scalein d1">📚</div>
+      <h1 class="capa-title anim-fadeup d2">Sistema de Biblioteca Digital</h1>
+      <p class="capa-subtitle anim-fadeup d3">
+        Projeto de Desenvolvimento de Software
+      </p>
+      <div class="capa-divider anim-fadein d4"></div>
+      <div class="capa-info anim-fadeup d5" style="margin-bottom: 18px;">
+        <strong style="color:#e0e8f5;font-size:15px;">Paulo Henrique Coutinho &nbsp;•&nbsp; Paulo Henrique Costa &nbsp;•&nbsp; Filipe &nbsp;•&nbsp; Paulo Fernando</strong>
+      </div>
+      <div class="capa-info anim-fadeup d6">
+        Engenharia de Software — Análise e Desenvolvimento de Sistemas<br />
+        Professor: Danilson Ranniere Silva Ferro<br />
+        <span>Caxias, Maranhão — Março de 2026</span>
+      </div>
+    </div>
+
+    <!-- ════════════ SLIDE 2 — AGENDA ════════════ -->
+    <div class="slide" data-slide="1">
+      <div class="slide-header">
+        <span class="icon">📋</span>
+        <h2>Agenda da Apresentação</h2>
+      </div>
+      <div
+        class="slide-body"
+        style="display: flex; align-items: center; justify-content: center"
+      >
+        <div class="agenda-list">
+          <div class="agenda-item anim-fadeleft d1">
+            <div class="agenda-num">01</div>
+            <div class="agenda-text">
+              <h3>Objetivo do Sistema</h3>
+              <p>O que é e para que serve a Biblioteca Digital</p>
+            </div>
+          </div>
+          <div class="agenda-item anim-fadeleft d2">
+            <div class="agenda-num">02</div>
+            <div class="agenda-text">
+              <h3>Usuários do Sistema</h3>
+              <p>Quem vai utilizar a plataforma</p>
+            </div>
+          </div>
+          <div class="agenda-item anim-fadeleft d3">
+            <div class="agenda-num">03</div>
+            <div class="agenda-text">
+              <h3>Funcionalidades Principais</h3>
+              <p>Recursos essenciais do sistema</p>
+            </div>
+          </div>
+          <div class="agenda-item anim-fadeleft d4">
+            <div class="agenda-num">04</div>
+            <div class="agenda-text">
+              <h3>Riscos do Projeto</h3>
+              <p>Ameaças ao sucesso do desenvolvimento</p>
+            </div>
+          </div>
+          <div class="agenda-item anim-fadeleft d5">
+            <div class="agenda-num">05</div>
+            <div class="agenda-text">
+              <h3>Etapas do Desenvolvimento</h3>
+              <p>Ciclo de vida do projeto</p>
+            </div>
+          </div>
+          <div class="agenda-item anim-fadeleft d6">
+            <div class="agenda-num">06</div>
+            <div class="agenda-text">
+              <h3>Problemas Potenciais</h3>
+              <p>Dificuldades que podem surgir</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SLIDE 3 — OBJETIVO ════════════ -->
+    <div class="slide" data-slide="2">
+      <div class="slide-header">
+        <span class="icon">🎯</span>
+        <h2>Objetivo do Sistema</h2>
+      </div>
+      <div class="slide-body">
+        <div class="objetivo-box anim-fadeup d1">
+          Desenvolver uma <strong>plataforma digital completa</strong> para
+          gerenciamento de acervo bibliográfico, permitindo que instituições de
+          ensino e bibliotecas públicas ofereçam
+          <strong>acesso remoto</strong> ao seu catálogo de livros, periódicos e
+          materiais acadêmicos.<br /><br />
+          O sistema visa <strong>modernizar</strong> o processo de empréstimo,
+          devolução e consulta de obras, eliminando filas e burocracias, além de
+          disponibilizar versões digitais (e-books e PDFs) para leitura online.
+        </div>
+        <div class="beneficios-grid">
+          <div class="beneficio-card anim-scalein d2">
+            <div class="icon">📖</div>
+            <h4>Acesso Remoto</h4>
+            <p>Consulta ao acervo de qualquer lugar</p>
+          </div>
+          <div class="beneficio-card anim-scalein d3">
+            <div class="icon">⏱️</div>
+            <h4>Agilidade</h4>
+            <p>Empréstimos e devoluções sem filas</p>
+          </div>
+          <div class="beneficio-card anim-scalein d4">
+            <div class="icon">🔍</div>
+            <h4>Busca Inteligente</h4>
+            <p>Pesquisa por título, autor ou assunto</p>
+          </div>
+          <div class="beneficio-card anim-scalein d5">
+            <div class="icon">📊</div>
+            <h4>Relatórios</h4>
+            <p>Dados detalhados sobre uso do acervo</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SLIDE 4 — USUÁRIOS ════════════ -->
+    <div class="slide" data-slide="3">
+      <div class="slide-header">
+        <span class="icon">👥</span>
+        <h2>Quem São os Usuários</h2>
+      </div>
+      <div class="slide-body" style="display: flex; align-items: center">
+        <div class="cards-grid cards-4" style="width: 100%">
+          <div class="card usuario-card cor1 anim-fadeup d1">
+            <div class="icon">🎓</div>
+            <h3>Alunos</h3>
+            <p>
+              Estudantes de graduação e pós-graduação que precisam consultar e
+              emprestar livros para seus estudos.
+            </p>
+          </div>
+          <div class="card usuario-card cor2 anim-fadeup d2">
+            <div class="icon">👨‍🏫</div>
+            <h3>Professores</h3>
+            <p>
+              Docentes que necessitam reservar materiais para disciplinas e
+              indicar bibliografias aos alunos.
+            </p>
+          </div>
+          <div class="card usuario-card cor3 anim-fadeup d3">
+            <div class="icon">📚</div>
+            <h3>Bibliotecários</h3>
+            <p>
+              Profissionais responsáveis pelo cadastro de obras, controle de
+              acervo e gestão de empréstimos.
+            </p>
+          </div>
+          <div class="card usuario-card cor4 anim-fadeup d4">
+            <div class="icon">🏛️</div>
+            <h3>Administradores</h3>
+            <p>
+              Gestores do sistema com acesso a relatórios, configurações e
+              controle de permissões.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SLIDE 5 — FUNCIONALIDADES 1 ════════════ -->
+    <div class="slide" data-slide="4">
+      <div class="slide-header">
+        <span class="icon">⚙️</span>
+        <h2>Principais Funcionalidades</h2>
+      </div>
+      <div class="slide-body">
+        <div class="func-item anim-fadeleft d1">
+          <div class="func-num">1</div>
+          <div class="func-content">
+            <h3>Cadastro e Catalogação de Obras</h3>
+            <p>
+              Registro completo de livros, periódicos, e-books e materiais
+              acadêmicos com informações como título, autor, ISBN, editora,
+              edição, ano e categoria. Suporte a código de barras e QR Code.
+            </p>
+          </div>
+        </div>
+        <div class="func-item anim-fadeleft d2">
+          <div class="func-num">2</div>
+          <div class="func-content">
+            <h3>Sistema de Empréstimo e Devolução</h3>
+            <p>
+              Controle automatizado de empréstimos com definição de prazos,
+              renovações online e alertas de vencimento por e-mail/notificação.
+              Multas automáticas para atrasos.
+            </p>
+          </div>
+        </div>
+        <div class="func-item anim-fadeleft d3">
+          <div class="func-num">3</div>
+          <div class="func-content">
+            <h3>Busca Avançada e Filtros</h3>
+            <p>
+              Motor de busca com pesquisa por título, autor, palavra-chave, ISBN
+              ou categoria. Filtros por disponibilidade, tipo de material, ano
+              de publicação e área do conhecimento.
+            </p>
+          </div>
+        </div>
+        <div class="func-item anim-fadeleft d4">
+          <div class="func-num">4</div>
+          <div class="func-content">
+            <h3>Reserva Online de Livros</h3>
+            <p>
+              Permite que o usuário reserve livros que estão emprestados,
+              entrando em uma fila de espera com notificação automática quando o
+              exemplar estiver disponível.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SLIDE 6 — FUNCIONALIDADES 2 ════════════ -->
+    <div class="slide" data-slide="5">
+      <div class="slide-header">
+        <span class="icon">⚙️</span>
+        <h2>Principais Funcionalidades (cont.)</h2>
+      </div>
+      <div class="slide-body">
+        <div class="func-item anim-fadeleft d1">
+          <div class="func-num">5</div>
+          <div class="func-content">
+            <h3>Leitura Digital (E-books / PDFs)</h3>
+            <p>
+              Visualizador integrado para leitura de obras digitais diretamente
+              na plataforma, com marcadores, anotações pessoais e modo noturno.
+              Controle de DRM para proteger direitos autorais.
+            </p>
+          </div>
+        </div>
+        <div class="func-item anim-fadeleft d2">
+          <div class="func-num">6</div>
+          <div class="func-content">
+            <h3>Painel Administrativo e Relatórios</h3>
+            <p>
+              Dashboard com estatísticas de uso: livros mais emprestados,
+              horários de pico, usuários mais ativos e obras em atraso. Geração
+              de relatórios em PDF para a gestão da instituição.
+            </p>
+          </div>
+        </div>
+        <div class="func-item anim-fadeleft d3">
+          <div class="func-num">7</div>
+          <div class="func-content">
+            <h3>Notificações e Alertas</h3>
+            <p>
+              Sistema de avisos por e-mail e push sobre prazos de devolução,
+              novas aquisições do acervo, disponibilidade de reservas e eventos
+              da biblioteca.
+            </p>
+          </div>
+        </div>
+        <div class="func-resumo anim-fadeup d4">
+          ✅ Total: 7 funcionalidades principais que cobrem todo o ciclo de uso
+          da biblioteca — do cadastro à leitura digital, passando por
+          empréstimos, buscas, reservas e gestão administrativa.
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SLIDE 7 — RISCOS ════════════ -->
+    <div class="slide" data-slide="6">
+      <div class="slide-header">
+        <span class="icon">⚠️</span>
+        <h2>Possíveis Riscos do Projeto</h2>
+      </div>
+      <div class="slide-body">
+        <div class="risco-item anim-faderight d1">
+          <div class="risco-bar alto"></div>
+          <div class="risco-body">
+            <div class="risco-meta">
+              <div class="risco-nivel c-alto">🔴 ALTO</div>
+              <div class="risco-titulo">Segurança de Dados dos Usuários</div>
+            </div>
+            <div class="risco-desc">
+              Vazamento de informações pessoais (CPF, endereço, histórico) pode
+              gerar processos judiciais e violar a LGPD. Criptografia e backups
+              regulares são essenciais.
+            </div>
+          </div>
+        </div>
+        <div class="risco-item anim-faderight d2">
+          <div class="risco-bar alto2"></div>
+          <div class="risco-body">
+            <div class="risco-meta">
+              <div class="risco-nivel c-alto2">🟠 ALTO</div>
+              <div class="risco-titulo">Resistência à Adoção</div>
+            </div>
+            <div class="risco-desc">
+              Usuários acostumados ao sistema manual podem resistir à migração
+              digital. Treinamentos insuficientes podem levar ao abandono do
+              sistema.
+            </div>
+          </div>
+        </div>
+        <div class="risco-item anim-faderight d3">
+          <div class="risco-bar medio"></div>
+          <div class="risco-body">
+            <div class="risco-meta">
+              <div class="risco-nivel c-medio">🟡 MÉDIO</div>
+              <div class="risco-titulo">Indisponibilidade (Downtime)</div>
+            </div>
+            <div class="risco-desc">
+              Falhas de servidor ou bugs podem tornar o acervo inacessível em
+              períodos críticos. Hospedagem redundante e plano de contingência
+              são essenciais.
+            </div>
+          </div>
+        </div>
+        <div class="risco-item anim-faderight d4">
+          <div class="risco-bar medio"></div>
+          <div class="risco-body">
+            <div class="risco-meta">
+              <div class="risco-nivel c-medio">🟡 MÉDIO</div>
+              <div class="risco-titulo">Scope Creep (Escopo Descontrolado)</div>
+            </div>
+            <div class="risco-desc">
+              Solicitações constantes de novas funcionalidades podem atrasar
+              entregas e estourar o orçamento. Gestão rigorosa de requisitos é
+              fundamental.
+            </div>
+          </div>
+        </div>
+        <div class="risco-item anim-faderight d5">
+          <div class="risco-bar baixo"></div>
+          <div class="risco-body">
+            <div class="risco-meta">
+              <div class="risco-nivel c-baixo">🟢 BAIXO</div>
+              <div class="risco-titulo">Incompatibilidade com Dispositivos</div>
+            </div>
+            <div class="risco-desc">
+              O sistema pode não funcionar em navegadores antigos ou
+              dispositivos móveis. Testes de compatibilidade e design responsivo
+              minimizam esse risco.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SLIDE 8 — ETAPAS ════════════ -->
+    <div class="slide" data-slide="7">
+      <div class="slide-header">
+        <span class="icon">🔄</span>
+        <h2>Etapas do Desenvolvimento</h2>
+      </div>
+      <div class="slide-body">
+        <div class="etapas-sub anim-fadein d1">
+          Metodologia: Modelo Incremental com práticas ágeis (Scrum)
+        </div>
+        <div class="etapas-grid">
+          <div class="etapa-card anim-fadeup d1">
+            <div class="etapa-circle">1</div>
+            <div class="etapa-line"></div>
+            <div class="etapa-body">
+              <div>
+                <h4>Levantamento de Requisitos</h4>
+                <p>Entrevistas com bibliotecários, alunos e professores</p>
+              </div>
+              <span class="etapa-tempo">⏱ 2 semanas</span>
+            </div>
+          </div>
+          <div class="etapa-card anim-fadeup d2">
+            <div class="etapa-circle">2</div>
+            <div class="etapa-line"></div>
+            <div class="etapa-body">
+              <div>
+                <h4>Análise e Modelagem</h4>
+                <p>Diagramas UML, protótipos de tela e arquitetura</p>
+              </div>
+              <span class="etapa-tempo">⏱ 3 semanas</span>
+            </div>
+          </div>
+          <div class="etapa-card anim-fadeup d3">
+            <div class="etapa-circle">3</div>
+            <div class="etapa-line"></div>
+            <div class="etapa-body">
+              <div>
+                <h4>Projeto (Design)</h4>
+                <p>Interface UI/UX, banco de dados e APIs</p>
+              </div>
+              <span class="etapa-tempo">⏱ 2 semanas</span>
+            </div>
+          </div>
+          <div class="etapa-card anim-fadeup d4">
+            <div class="etapa-circle">4</div>
+            <div class="etapa-line"></div>
+            <div class="etapa-body">
+              <div>
+                <h4>Implementação (Codificação)</h4>
+                <p>Desenvolvimento frontend, backend e integração</p>
+              </div>
+              <span class="etapa-tempo">⏱ 8 semanas</span>
+            </div>
+          </div>
+          <div class="etapa-card anim-fadeup d5">
+            <div class="etapa-circle">5</div>
+            <div class="etapa-line"></div>
+            <div class="etapa-body">
+              <div>
+                <h4>Testes</h4>
+                <p>Unitários, integração, usabilidade e desempenho</p>
+              </div>
+              <span class="etapa-tempo">⏱ 3 semanas</span>
+            </div>
+          </div>
+          <div class="etapa-card anim-fadeup d6">
+            <div class="etapa-circle">6</div>
+            <div class="etapa-line"></div>
+            <div class="etapa-body">
+              <div>
+                <h4>Implantação e Treinamento</h4>
+                <p>Deploy, migração de dados e capacitação</p>
+              </div>
+              <span class="etapa-tempo">⏱ 2 semanas</span>
+            </div>
+          </div>
+          <div class="etapa-card anim-fadeup d7">
+            <div class="etapa-circle">7</div>
+            <div class="etapa-body">
+              <div>
+                <h4>Manutenção e Evolução</h4>
+                <p>Correções, updates e novas features contínuas</p>
+              </div>
+              <span class="etapa-tempo">⏱ Contínuo</span>
+            </div>
+          </div>
+        </div>
+        <div class="etapas-total anim-fadeup d8">
+          📅 Prazo estimado total: ~20 semanas (5 meses) + manutenção contínua
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SLIDE 9 — PROBLEMAS ════════════ -->
+    <div class="slide" data-slide="8">
+      <div class="slide-header">
+        <span class="icon">🚧</span>
+        <h2>Problemas que Podem Ocorrer</h2>
+      </div>
+      <div class="slide-body" style="display: flex; align-items: center">
+        <div class="problemas-grid" style="width: 100%">
+          <div class="problema-card anim-fadeup d1">
+            <div class="problema-icon">💬</div>
+            <div>
+              <h3>Comunicação Falha na Equipe</h3>
+              <p>
+                Mal-entendidos entre desenvolvedores, designers e o cliente
+                podem gerar funcionalidades que não atendem à necessidade real.
+                Reuniões periódicas (dailys e sprints) ajudam a mitigar.
+              </p>
+            </div>
+          </div>
+          <div class="problema-card anim-fadeup d2">
+            <div class="problema-icon">🔄</div>
+            <div>
+              <h3>Mudanças Constantes de Requisitos</h3>
+              <p>
+                O cliente pode solicitar alterações frequentes, gerando
+                retrabalho e atrasos. Um contrato de escopo e processo formal de
+                change requests são fundamentais.
+              </p>
+            </div>
+          </div>
+          <div class="problema-card anim-fadeup d3">
+            <div class="problema-icon">🔗</div>
+            <div>
+              <h3>Integração com Sistemas Legados</h3>
+              <p>
+                A biblioteca pode possuir sistemas antigos (planilhas, bancos
+                Access) cujos dados precisam ser migrados. Formatos
+                incompatíveis tornam a migração complexa.
+              </p>
+            </div>
+          </div>
+          <div class="problema-card anim-fadeup d4">
+            <div class="problema-icon">📉</div>
+            <div>
+              <h3>Subestimação de Prazos e Custos</h3>
+              <p>
+                Equipes inexperientes podem estimar prazos otimistas demais, sem
+                considerar imprevistos técnicos e curva de aprendizado. Gera
+                pressão e queda de qualidade.
+              </p>
+            </div>
+          </div>
+          <div class="problema-card anim-fadeup d5">
+            <div class="problema-icon">🐛</div>
+            <div>
+              <h3>Falta de Testes Adequados</h3>
+              <p>
+                Pular etapas de testes para cumprir prazos pode levar a bugs em
+                produção, perdas de dados e frustração dos usuários. Automação e
+                QA dedicado são necessários.
+              </p>
+            </div>
+          </div>
+          <div class="problema-card anim-fadeup d6">
+            <div class="problema-icon">📊</div>
+            <div>
+              <h3>Problemas de Desempenho</h3>
+              <p>
+                Em períodos de matrícula ou provas, muitos acessos simultâneos
+                podem derrubar o sistema se não houver planejamento de
+                escalabilidade e cache.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SLIDE 10 — CONCLUSÃO ════════════ -->
+    <div class="slide slide-conclusao" data-slide="9">
+      <h2
+        class="anim-fadeup d1"
+        style="font-size: 36px; color: white; margin-bottom: 20px"
+      >
+        ✅ Conclusão
+      </h2>
+      <p class="conclusao-text anim-fadeup d2">
+        O Sistema de Biblioteca Digital representa uma solução moderna e
+        necessária para instituições de ensino que buscam otimizar a gestão do
+        seu acervo e oferecer uma experiência digital de qualidade aos seus
+        usuários.
+      </p>
+      <div class="destaques">
+        <div class="destaque-pill anim-scalein d3">
+          ✔ 7 funcionalidades essenciais mapeadas
+        </div>
+        <div class="destaque-pill anim-scalein d4">
+          ✔ 5 riscos identificados e classificados
+        </div>
+        <div class="destaque-pill anim-scalein d5">
+          ✔ 7 etapas de desenvolvimento planejadas
+        </div>
+        <div class="destaque-pill anim-scalein d6">
+          ✔ 6 problemas potenciais antecipados
+        </div>
+      </div>
+      <p class="conclusao-quote anim-fadein d7">
+        "Um bom software não nasce do código, nasce do planejamento."
+      </p>
+    </div>
+
+    <!-- ════════════ SLIDE 11 — OBRIGADO ════════════ -->
+    <div class="slide slide-obrigado" data-slide="10">
+      <div class="obrigado-title anim-scalein d1">Obrigado!</div>
+      <div class="obrigado-sub anim-fadeup d2">
+        📚 Sistema de Biblioteca Digital
+      </div>
+      <div class="obrigado-divider anim-fadein d3"></div>
+      <div class="obrigado-question anim-fadeup d4">Dúvidas ou sugestões?</div>
+      <div class="obrigado-footer anim-fadein d5">
+        Engenharia de Software — ADS — Caxias/MA — 2026
+      </div>
+    </div>
+
+    <!-- ─── BARRA DE NAVEGAÇÃO ─── -->
+    <div class="nav-bar">
+      <button id="btnPrev" onclick="changeSlide(-1)">← Anterior</button>
+      <div class="nav-dots" id="navDots"></div>
+      <span class="nav-counter" id="navCounter">1 / 11</span>
+      <button id="btnNext" onclick="changeSlide(1)">Próximo →</button>
+    </div>
+
+    <script>
+      const slides = document.querySelectorAll(".slide");
+      const total = slides.length;
+      let current = 0;
+
+      // Criar dots
+      const dotsContainer = document.getElementById("navDots");
+      for (let i = 0; i < total; i++) {
+        const dot = document.createElement("button");
+        dot.className = "nav-dot" + (i === 0 ? " active" : "");
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+      }
+
+      function updateUI() {
+        document.getElementById("navCounter").textContent =
+          `${current + 1} / ${total}`;
+        document.getElementById("btnPrev").disabled = current === 0;
+        document.getElementById("btnNext").disabled = current === total - 1;
+        document.getElementById("progressBar").style.width =
+          `${((current + 1) / total) * 100}%`;
+
+        // Dots
+        document.querySelectorAll(".nav-dot").forEach((d, i) => {
+          d.classList.toggle("active", i === current);
+        });
+      }
+
+      function goToSlide(index) {
+        if (index === current || index < 0 || index >= total) return;
+        const dir = index > current ? 1 : -1;
+
+        // Reset animations on all elements in current slide
+        slides[current].classList.remove("active");
+        slides[current].classList.add(dir > 0 ? "prev" : "");
+
+        // Remove prev class after transition
+        setTimeout(() => slides[current].classList.remove("prev"), 600);
+
+        current = index;
+        slides[current].classList.add("active");
+        updateUI();
+      }
+
+      function changeSlide(dir) {
+        goToSlide(current + dir);
+      }
+
+      // Keyboard navigation
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+          e.preventDefault();
+          changeSlide(1);
+        }
+        if (e.key === "ArrowLeft" || e.key === "PageUp") {
+          e.preventDefault();
+          changeSlide(-1);
+        }
+        if (e.key === "Home") {
+          e.preventDefault();
+          goToSlide(0);
+        }
+        if (e.key === "End") {
+          e.preventDefault();
+          goToSlide(total - 1);
+        }
+        // Fullscreen com F
+        if (e.key === "f" || e.key === "F") {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+          } else {
+            document.exitFullscreen();
+          }
+        }
+      });
+
+      // Touch/swipe support
+      let touchStartX = 0;
+      document.addEventListener("touchstart", (e) => {
+        touchStartX = e.touches[0].clientX;
+      });
+      document.addEventListener("touchend", (e) => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) changeSlide(diff > 0 ? 1 : -1);
+      });
+
+      updateUI();
+    </script>
+  </body>
+</html>
