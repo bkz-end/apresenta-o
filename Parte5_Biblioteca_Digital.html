@@ -918,10 +918,8 @@
       }
 
       /* ─── FULLSCREEN: esconde barra e progress ─── */
-      :fullscreen .nav-bar,
-      :-webkit-full-screen .nav-bar,
-      :fullscreen .progress-bar,
-      :-webkit-full-screen .progress-bar {
+      .hide-ui .nav-bar,
+      .hide-ui .progress-bar {
         display: none !important;
       }
 
@@ -1622,6 +1620,14 @@
           document.exitFullscreen();
         }
       }
+
+      document.addEventListener('fullscreenchange', () => {
+        if (document.fullscreenElement) {
+          document.body.classList.add('hide-ui');
+        } else {
+          document.body.classList.remove('hide-ui');
+        }
+      });
 
       updateUI();
     </script>
