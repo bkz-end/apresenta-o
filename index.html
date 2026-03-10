@@ -874,11 +874,11 @@
       #btnFull {
         font-size: 20px;
         padding: 6px 14px;
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 8px;
       }
       #btnFull:hover {
-        background: rgba(255,255,255,0.25);
+        background: rgba(255, 255, 255, 0.25);
       }
       .nav-counter {
         color: #aabbdd;
@@ -915,6 +915,14 @@
         background: var(--amarelo);
         width: 24px;
         border-radius: 4px;
+      }
+
+      /* ─── FULLSCREEN: esconde barra e progress ─── */
+      :fullscreen .nav-bar,
+      :-webkit-full-screen .nav-bar,
+      :fullscreen .progress-bar,
+      :-webkit-full-screen .progress-bar {
+        display: none !important;
       }
 
       /* ─── RESPONSIVO ─── */
@@ -1512,7 +1520,9 @@
       <div class="nav-dots" id="navDots"></div>
       <span class="nav-counter" id="navCounter">1 / 11</span>
       <button id="btnNext" onclick="changeSlide(1)">Próximo ▶</button>
-      <button id="btnFull" onclick="toggleFullscreen()" title="Tela cheia (F)">⛶</button>
+      <button id="btnFull" onclick="toggleFullscreen()" title="Tela cheia (F)">
+        ⛶
+      </button>
     </div>
 
     <script>
